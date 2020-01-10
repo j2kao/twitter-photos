@@ -5,10 +5,12 @@ import urllib3
 is_py2 = sys.version[0] == '2'
 if is_py2:
     import Queue as queue
+    from Queue import Empty as Empty
 else:
     import queue as queue
+    from queue import Empty as Empty
 from .settings import PROGRESS_FORMATTER, NUM_THREADS
-from Queue import Empty
+
 
 
 pool_manager = urllib3.PoolManager()
