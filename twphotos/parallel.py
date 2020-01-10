@@ -8,6 +8,7 @@ if is_py2:
 else:
     import queue as queue
 from .settings import PROGRESS_FORMATTER, NUM_THREADS
+from Queue import Empty
 
 
 pool_manager = urllib3.PoolManager()
@@ -41,15 +42,17 @@ def worker(queue, user, size, outdir, total):
     while True:
         try:
             photo = queue.get(False)
-        except Queue.Empty:
+        except Empty:
             break
         media_url = photo[1]
-        urllib3_download(media_url, size, outdir)
+        display_url = photo[2]
+        urllib3_download(media_url, display_url, size, outdir)
         with lock:
             global downloaded
             downloaded += 1
             d = {
                 'media_url': os.path.basename(media_url),
+                'display_url': os.path.basename(display_url),
                 'user': user,
                 'index': downloaded + 1 if downloaded < total else total,
                 'total': total,
@@ -59,10 +62,10 @@ def worker(queue, user, size, outdir, total):
             sys.stdout.flush()
 
 
-def urllib3_download(media_url, size, outdir):
+def urllib3_download(media_url, display_url, size, outdir):
     r = pool_manager.request('GET', media_url + ':' + size)
-    bs = os.path.basename(media_url)
-    filename = os.path.join(outdir or '', bs)
+    bs = os.path.basename(display_url)
+    filename = os.path.join(outdir or '', bs) + '.jpg'
     with open(filename, 'wb') as fd:
         fd.write(r.data)
     return filename

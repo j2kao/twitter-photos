@@ -113,7 +113,7 @@ class TwitterPhotos(object):
                 for m in s.media:
                     m_dict = m.AsDict()
                     if m_dict['type'] == 'photo':
-                        t = (m_dict['id'], m_dict['media_url'])
+                        t = (m_dict['id'], m_dict['media_url'], m_dict['display_url'])
                         fetched_photos.append(t)
 
         if num is not None:
@@ -165,7 +165,7 @@ class TwitterPhotos(object):
         for user in self.photos:
             photos = self.photos[user]
             for i, photo in enumerate(photos):
-                line = '%s %s %s' % (user, photo[0], photo[1])
+                line = '%s %s %s %s' % (user, photo[0], photo[1], photo[2])
                 if i < len(photos) - 1:
                     print(line)
                 else:
@@ -188,8 +188,9 @@ class TwitterPhotos(object):
         else:
             for photo in photos:
                 media_url = photo[1]
+                display_url = photo[2]
                 self._print_progress(user, media_url)
-                download(media_url, size, outdir)
+                download(media_url, display_url, size, outdir)
                 self._downloaded += 1
 
     def _get_progress(self, user, media_url):
@@ -253,9 +254,9 @@ class TestAPI(object):
                     break
         statuses = [
             self.Status(id=s[0], media=[
-                    type(str('Media'),(object,),{'AsDict': (lambda self: m) })()
-                    for m in s[1]
-                ])
+                type(str('Media'), (object,), {'AsDict': (lambda self: m)})()
+                for m in s[1]
+            ])
             for s in self._statuses[_start:_end + 1]
         ]
         return statuses[:count]
